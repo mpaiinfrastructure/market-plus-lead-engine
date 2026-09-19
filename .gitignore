@@ -149,13 +149,25 @@ activemq-data/
 
 # Environments
 .env
+.env.*
+!.env.example
 .envrc
 .venv
+
+# Node dependencies and runtime data
+node_modules/
+data/
 env/
 venv/
 ENV/
 env.bak/
 venv.bak/
+
+# Secrets and credentials
+*.pem
+*.key
+*.crt
+credentials.json
 
 # Spyder project settings
 .spyderproject

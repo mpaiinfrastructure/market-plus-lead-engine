@@ -1,0 +1,27 @@
+{
+  "name": "market-plus-engine",
+  "version": "1.0.0",
+  "description": "Market Plus Automated Solutions autonomous pipeline",
+  "main": "src/server.js",
+  "scripts": {
+    "scrape": "node src/scraper.js",
+    "outreach": "node src/outreach.js",
+    "doctor": "node src/ops.js doctor",
+    "self-heal": "node src/ops.js self-heal",
+    "upgrade": "node src/ops.js upgrade",
+    "start": "node src/server.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@deepgram/sdk": "^5.10.1",
+    "@google/genai": "^2.22.0",
+    "apify-client": "^2.25.0",
+    "axios": "^1.7.0",
+    "cheerio": "^1.0.0-rc.12",
+    "crawlee": "^3.11.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "stripe": "^22.6.2",
+    "twilio": "^6.1.1"
+  }
+}

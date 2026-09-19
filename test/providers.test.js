@@ -4,8 +4,8 @@ const assert = require('node:assert/strict');
 const { getProviderConfig } = require('../src/config');
 
 test('loads provider config from environment variables', () => {
-  process.env.GOOGLE_API_KEY = 'google-key';
-  process.env.GOOGLE_MODEL = 'gemini-2.0-flash';
+  process.env.GEMINI_API_KEY = 'google-key';
+  process.env.GEMINI_MODEL = 'gemini-2.0-flash';
   process.env.TWILIO_ACCOUNT_SID = 'twilio-sid';
   process.env.TWILIO_AUTH_TOKEN = 'twilio-token';
   process.env.TWILIO_PHONE_NUMBER = '+15551234567';
@@ -23,7 +23,7 @@ test('loads provider config from environment variables', () => {
 });
 
 test('exposes a centralized runtime status for optional providers', () => {
-  delete process.env.GOOGLE_API_KEY;
+  delete process.env.GEMINI_API_KEY;
   delete process.env.TWILIO_ACCOUNT_SID;
   delete process.env.TWILIO_AUTH_TOKEN;
   delete process.env.TWILIO_PHONE_NUMBER;

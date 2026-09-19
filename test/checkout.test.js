@@ -37,9 +37,9 @@ test('does not provide a free installation endpoint', async () => {
 });
 
 test('requires Stripe configuration before checkout', async () => {
-  const previousSecret = process.env.STRIPE_SECRET_KEY;
+  const previousSecret = process.env.STRIPE_API_KEY;
   const previousPrice = process.env.STRIPE_PRICE_ID;
-  delete process.env.STRIPE_SECRET_KEY;
+  delete process.env.STRIPE_API_KEY;
   delete process.env.STRIPE_PRICE_ID;
 
   await withServer(async (baseUrl) => {
@@ -52,16 +52,16 @@ test('requires Stripe configuration before checkout', async () => {
     assert.equal(response.status, 503);
   });
 
-  if (previousSecret === undefined) delete process.env.STRIPE_SECRET_KEY;
-  else process.env.STRIPE_SECRET_KEY = previousSecret;
+  if (previousSecret === undefined) delete process.env.STRIPE_API_KEY;
+  else process.env.STRIPE_API_KEY = previousSecret;
   if (previousPrice === undefined) delete process.env.STRIPE_PRICE_ID;
   else process.env.STRIPE_PRICE_ID = previousPrice;
 });
 
 test('rejects checkout outside configured ZIP codes', async () => {
-  const previousSecret = process.env.STRIPE_SECRET_KEY;
+  const previousSecret = process.env.STRIPE_API_KEY;
   const previousPrice = process.env.STRIPE_PRICE_ID;
-  process.env.STRIPE_SECRET_KEY = 'sk_test_placeholder';
+  process.env.STRIPE_API_KEY = 'sk_test_placeholder';
   process.env.STRIPE_PRICE_ID = 'price_placeholder';
 
   await withServer(async (baseUrl) => {
@@ -74,8 +74,8 @@ test('rejects checkout outside configured ZIP codes', async () => {
     assert.equal(response.status, 400);
   });
 
-  if (previousSecret === undefined) delete process.env.STRIPE_SECRET_KEY;
-  else process.env.STRIPE_SECRET_KEY = previousSecret;
+  if (previousSecret === undefined) delete process.env.STRIPE_API_KEY;
+  else process.env.STRIPE_API_KEY = previousSecret;
   if (previousPrice === undefined) delete process.env.STRIPE_PRICE_ID;
   else process.env.STRIPE_PRICE_ID = previousPrice;
 });

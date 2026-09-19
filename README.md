@@ -26,7 +26,7 @@ npm install
 
 ```env
 # Optional but recommended for AI qualification
-GOOGLE_API_KEY=your_key_here
+GEMINI_API_KEY=your_key_here
 
 # Optional for SMS outreach
 TWILIO_ACCOUNT_SID=your_sid
@@ -66,7 +66,7 @@ npm install
 npm start
 ```
 
-When `GOOGLE_API_KEY` is absent, lead qualification automatically uses Ollama at `http://127.0.0.1:11434` with `qwen2.5:7b`. Override those values with `OLLAMA_BASE_URL` and `OLLAMA_MODEL` if needed.
+When `GEMINI_API_KEY` is absent, lead qualification automatically uses Ollama at `http://127.0.0.1:11434` with `qwen2.5:7b`. Override those values with `OLLAMA_BASE_URL` and `OLLAMA_MODEL` if needed.
 
 For production, set `NODE_ENV=production`, `PUBLIC_BASE_URL` to the public HTTPS URL, and use a process manager such as systemd, Docker, or a hosted service that restarts the process. Configure its health check to call `/health/live`; use `/health/ready` for deployment gating. The readiness endpoint returns `503` until Stripe secret, price, and webhook values are configured.
 
@@ -87,7 +87,7 @@ node src/outreach.js
 ### Recommended minimum
 
 ```env
-GOOGLE_API_KEY=your_google_ai_key
+GEMINI_API_KEY=your_google_ai_key
 ```
 
 This enables lead qualification. Without it, the app returns a dry-run qualification result and does not crash.
@@ -133,8 +133,8 @@ Optional. This triggers a GitHub repository dispatch after install or checkout e
 ### Stripe
 
 ```env
-STRIPE_SECRET_KEY=your_secret
-STRIPE_PUBLISHABLE_KEY=your_publishable
+STRIPE_API_KEY=your_secret
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=your_publishable
 STRIPE_WEBHOOK_SECRET=your_webhook_secret
 ```
 
@@ -191,9 +191,7 @@ test/
 
 ```env
 # Google AI for lead qualification
-GOOGLE_API_KEY=
 GEMINI_API_KEY=
-GOOGLE_MODEL=
 GEMINI_MODEL=
 
 # Twilio SMS
@@ -216,8 +214,8 @@ GH_REPO=
 GITHUB_PAT=
 
 # Stripe integration
-STRIPE_SECRET_KEY=
-STRIPE_PUBLISHABLE_KEY=
+STRIPE_API_KEY=
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
 STRIPE_WEBHOOK_SECRET=
 STRIPE_PRICE_ID=
 STRIPE_SUCCESS_URL=http://localhost:3000/checkout/success

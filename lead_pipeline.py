@@ -1,10 +1,11 @@
 import requests
 from bs4 import BeautifulSoup
+import os
 
 # API Keys & Configurations
-MAILGUN_API_KEY = "your-mailgun-api-key"
-MAILGUN_DOMAIN = "your-mailgun-domain.com"
-STRIPE_API_KEY = "STRIPE_API_KEY_PLACEHOLDER"
+MAILGUN_API_KEY = os.getenv("MAILGUN_API_KEY", "")
+MAILGUN_DOMAIN = os.getenv("MAILGUN_DOMAIN", "")
+STRIPE_API_KEY = os.getenv("STRIPE_API_KEY", "")
 
 def scrape_leads(url):
     response = requests.get(url)

@@ -31,12 +31,15 @@ function getProviderConfig() {
       model: coalesce(process.env.OLLAMA_MODEL, 'qwen2.5:7b'),
     },
     google: {
-      apiKey: coalesce(process.env.GOOGLE_API_KEY, process.env.GEMINI_API_KEY),
-      model: coalesce(process.env.GOOGLE_MODEL, process.env.GEMINI_MODEL, 'gemini-2.5-flash'),
+      apiKey: coalesce(process.env.GEMINI_API_KEY, process.env.GOOGLE_API_KEY),
+      model: coalesce(process.env.GEMINI_MODEL, process.env.GOOGLE_MODEL, 'gemini-2.5-flash'),
     },
     stripe: {
-      secretKey: coalesce(process.env.STRIPE_SECRET_KEY),
-      publishableKey: coalesce(process.env.STRIPE_PUBLISHABLE_KEY),
+      secretKey: coalesce(process.env.STRIPE_API_KEY, process.env.STRIPE_SECRET_KEY),
+      publishableKey: coalesce(
+        process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
+        process.env.STRIPE_PUBLISHABLE_KEY,
+      ),
       webhookSecret: coalesce(process.env.STRIPE_WEBHOOK_SECRET),
       priceId: coalesce(process.env.STRIPE_PRICE_ID),
       successUrl: coalesce(process.env.STRIPE_SUCCESS_URL, 'http://localhost:3000/checkout/success'),
@@ -51,6 +54,10 @@ function getProviderConfig() {
       apiKey: coalesce(process.env.DEEPGRAM_API_KEY),
       voiceId: coalesce(process.env.DEEPGRAM_VOICE_ID, 'aura-asteria-en'),
       ttsModel: coalesce(process.env.DEEPGRAM_TTS_MODEL, 'aura-asteria-en'),
+    },
+    mailgun: {
+      apiKey: coalesce(process.env.MAILGUN_API_KEY),
+      domain: coalesce(process.env.MAILGUN_DOMAIN),
     },
     apify: {
       apiToken: coalesce(process.env.APIFY_API_TOKEN),

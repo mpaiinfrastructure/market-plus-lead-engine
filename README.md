@@ -78,6 +78,23 @@ authorized GitHub login, and provide `GITHUB_SESSION_SECRET`. The dashboard's
 public surface contains only the client-facing pitch; telemetry, lead data,
 pipeline state, projections, and live logs require the signed operator session.
 
+## Render deployment
+
+`render.yaml` defines the always-on API and Next.js command-center services.
+Create a new Render Blueprint from this repository, then fill the `sync: false`
+values in the Render dashboard. After Render assigns service URLs:
+
+1. Set the API service `PUBLIC_BASE_URL` to its HTTPS URL.
+2. Set `GITHUB_OAUTH_CALLBACK_URL` to
+   `https://<api-service>/auth/github/callback`.
+3. Register that callback URL in a GitHub OAuth App.
+4. Set the dashboard `NEXT_PUBLIC_API_URL` to the API HTTPS URL.
+5. Keep `DRY_RUN=true` until provider delivery has been tested deliberately.
+
+The API uses a persistent Render disk for resumable pipeline state. GitHub
+Actions remains responsible for scheduled scanning; Render hosts the API and
+dashboard continuously.
+
 4. Run the scraper manually
 
 ```bash

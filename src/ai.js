@@ -38,6 +38,23 @@ function parseQualificationResponse(rawText = '') {
   };
 }
 
+function qualifyLeadLocally(lead = {}) {
+  const score = Math.min(100,
+    (lead.website ? 25 : 0)
+    + (lead.phone ? 25 : 0)
+    + (lead.aiReady === false ? 30 : 0)
+    + (lead.businessType && lead.businessType !== 'Unknown' ? 20 : 0));
+  return {
+    qualified: score >= 60,
+    score,
+    summary: score >= 60 ? 'Business has a reachable contact and an apparent automation opportunity.' : 'Insufficient deterministic contact or opportunity signals.',
+    recommendedTools: score >= 60
+      ? ['AI receptionist', 'Missed call text back', 'Lead qualification']
+      : [],
+    provider: 'local',
+  };
+}
+
 async function qualifyLead(lead = {}) {
   const { google, ollama } = getProviderConfig();
 
@@ -94,5 +111,6 @@ async function qualifyLead(lead = {}) {
 
 module.exports = {
   qualifyLead,
+  qualifyLeadLocally,
   parseQualificationResponse,
 };

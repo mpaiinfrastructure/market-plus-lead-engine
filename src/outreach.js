@@ -20,27 +20,32 @@ Would you like a no-pressure demo and a secure checkout link so we can deploy th
 }
 
 async function sendSmsFollowUp(lead) {
-  const { twilio } = getProviderConfig();
-  if (!getProviderStatus().twilio) {
-    return { dryRun: true, mode: 'sms', lead, note: 'Twilio not configured.' };
+  const { signalwire, app } = getProviderConfig();
+  if (app.dryRun) {
+    return { dryRun: true, mode: 'sms', lead, note: 'DRY_RUN is enabled.' };
+  }
+  if (!getProviderStatus(getProviderConfig()).signalwire || !signalwire.phoneNumber) {
+    return { dryRun: true, mode: 'sms', lead, note: 'SignalWire not configured.' };
   }
 
-  const client = require('twilio')(twilio.accountSid, twilio.authToken);
   const text = `Hi! This is Market Plus Automated Solutions. We help local service businesses capture missed calls and book more jobs. Would you like a quick AI demo? ${lead.website || 'https://example.com'}`;
 
-  const message = await client.messages.create({
-    body: text,
-    from: twilio.phoneNumber,
-    to: lead.phone || '',
-  });
+  const response = await axios.post(
+    `https://${signalwire.space}/api/laml/2010-04-01/Accounts/${signalwire.projectId}/Messages.json`,
+    new URLSearchParams({ To: lead.phone || '', From: signalwire.phoneNumber, Body: text }),
+    { auth: { username: signalwire.projectId, password: signalwire.apiToken } },
+  );
 
-  return { dryRun: false, mode: 'sms', lead, sid: message.sid };
+  return { dryRun: false, mode: 'sms', lead, sid: response.data?.sid || null };
 }
 
 async function sendVoicePitch(lead) {
-  const { deepgram } = getProviderConfig();
+  const { deepgram, app } = getProviderConfig();
   const pitchPrompt = buildPitchPrompt(lead);
 
+  if (app.dryRun) {
+    return { dryRun: true, mode: 'voice', lead, prompt: pitchPrompt, note: 'DRY_RUN is enabled.' };
+  }
   if (!deepgram.apiKey) {
     console.log(`Market Plus Engine: Dry-run outreach for ${lead.name} -> ${pitchPrompt.trim()}`);
     return { dryRun: true, mode: 'voice', lead };
@@ -84,7 +89,16 @@ async function dispatchVoiceOutreach() {
   fs.writeFileSync(path.join(dataDir, 'outreach_log.json'), JSON.stringify(log, null, 2));
 }
 
-dispatchVoiceOutreach().catch((err) => {
-  console.error('Outreach workflow failed:', err);
-  process.exit(1);
-});
+if (require.main === module) {
+  dispatchVoiceOutreach().catch((err) => {
+    console.error('Outreach workflow failed:', err);
+    process.exit(1);
+  });
+}
+
+module.exports = {
+  buildPitchPrompt,
+  sendSmsFollowUp,
+  sendVoicePitch,
+  dispatchVoiceOutreach,
+};

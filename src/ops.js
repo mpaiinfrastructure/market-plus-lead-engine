@@ -52,7 +52,7 @@ function selfHeal() {
 }
 
 function upgrade() {
-  if (process.env.ALLOW_RUNTIME_UPGRADE !== 'true') {
+  if (!config.app.allowRuntimeUpgrade) {
     console.error('Runtime upgrades are disabled. Set ALLOW_RUNTIME_UPGRADE=true for a deliberate upgrade.');
     return 1;
   }

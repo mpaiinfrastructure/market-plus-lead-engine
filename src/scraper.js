@@ -7,14 +7,20 @@ const { getProviderConfig } = require('./config');
 const dataDir = getProviderConfig().app.dataDir;
 
 const TARGET_ZIPS = getProviderConfig().highIncomeZips;
-const SEARCH_TERM = process.env.LEAD_SEARCH_TERM || 'businesses';
 const AI_KEYWORDS = ['vapi', 'bland.ai', 'openai', 'chatgpt', 'intercom', 'livechat', 'drift', 'chatbot'];
 
 function normalizeUrl(url) {
   if (!url) return null;
   const trimmed = url.trim();
   if (!trimmed) return null;
-  return trimmed.startsWith('http') ? trimmed : `https://${trimmed}`;
+  if (/^(javascript|mailto|tel|#):/i.test(trimmed)) return null;
+  const candidate = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+  try {
+    const parsed = new URL(candidate);
+    return ['http:', 'https:'].includes(parsed.protocol) ? parsed.toString() : null;
+  } catch {
+    return null;
+  }
 }
 
 function dedupe(items) {
@@ -55,13 +61,14 @@ function parseBusinessLinks(html) {
   return dedupe(links).slice(0, 20);
 }
 
-async function scrapeBusinessLeadsForZip(zip) {
+async function scrapeBusinessLeadsForZip(zip, niche = getProviderConfig().leadSearchTerm) {
   const results = [];
 
-  const targetUrl = `https://www.yellowpages.com/search?search_terms=${encodeURIComponent(SEARCH_TERM)}&geo_location_terms=${zip}`;
-
   try {
-    const response = await axios.get(targetUrl, { timeout: 15000, validateStatus: () => true });
+    const response = await axios.get(
+      `https://www.yellowpages.com/search?search_terms=${encodeURIComponent(niche)}&geo_location_terms=${zip}`,
+      { timeout: 15000, validateStatus: () => true },
+    );
     const links = parseBusinessLinks(response.data);
 
     for (const website of links) {
@@ -84,21 +91,22 @@ async function scrapeBusinessLeadsForZip(zip) {
     }
   } catch (error) {
     console.warn(`Unable to inspect ZIP ${zip}: ${error.message}`);
+    throw error;
   }
 
   return results;
 }
 
 async function runApifyCapture() {
-  const providers = getProviderConfig();
-  if (!providers.apify.apiToken) {
+  const config = getProviderConfig();
+  if (!config.apify.apiToken) {
     return [];
   }
 
   try {
     const { ApifyClient } = require('apify-client');
-    const client = new ApifyClient({ token: providers.apify.apiToken });
-    const run = await client.actor('apify/website-scraper').call({
+    const client = new ApifyClient({ token: config.apify.apiToken });
+    const run = await client.actor(config.apify.actorId).call({
       startUrls: [{ url: 'https://www.yellowpages.com' }],
     });
 
@@ -140,7 +148,19 @@ async function runPipeline() {
   console.log(`Market Plus Engine: Scraped ${leads.length} businesses without detected AI infrastructure.`);
 }
 
-runPipeline().catch((err) => {
-  console.error('Scrape pipeline failed:', err);
-  process.exit(1);
-});
+if (require.main === module) {
+  runPipeline().catch((err) => {
+    console.error('Scrape pipeline failed:', err);
+    process.exit(1);
+  });
+}
+
+module.exports = {
+  normalizeUrl,
+  extractPhoneNumber,
+  parseBusinessLinks,
+  pageHasAIInfrastructure,
+  scrapeBusinessLeadsForZip,
+  runApifyCapture,
+  runPipeline,
+};

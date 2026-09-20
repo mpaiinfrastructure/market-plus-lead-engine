@@ -156,6 +156,7 @@ activemq-data/
 
 # Node dependencies and runtime data
 node_modules/
+dashboard/.next/
 data/
 env/
 venv/
@@ -228,3 +229,6 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# TypeScript build metadata
+dashboard/tsconfig.tsbuildinfo

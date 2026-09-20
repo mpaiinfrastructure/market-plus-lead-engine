@@ -2,9 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
-:root { --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace; }
+:root { --font-mono: "JetBrains Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace; --font-sans: "Geist", "Inter", Arial, sans-serif; }
 * { box-sizing: border-box; }
-body { margin: 0; background: #080a0b; color: #d9e0df; font-family: var(--font-mono); }
+body { margin: 0; background: #09090b; color: #d9e0df; font-family: var(--font-sans); }
 button { font: inherit; }
 .scanline { background-image: linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px); background-size: 100% 4px; }
 .glow { text-shadow: 0 0 18px rgba(184,255,44,.5); }
+.eyebrow { font-family: var(--font-mono); font-size: 10px; letter-spacing: .2em; text-transform: uppercase; }

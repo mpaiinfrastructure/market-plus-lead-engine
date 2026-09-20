@@ -97,7 +97,7 @@ async function scrapeBusinessLeadsForZip(zip, niche = getProviderConfig().leadSe
   return results;
 }
 
-async function runApifyCapture() {
+async function runApifyCapture(zip = null, niche = getProviderConfig().leadSearchTerm) {
   const config = getProviderConfig();
   if (!config.apify.apiToken) {
     return [];
@@ -107,14 +107,33 @@ async function runApifyCapture() {
     const { ApifyClient } = require('apify-client');
     const client = new ApifyClient({ token: config.apify.apiToken });
     const run = await client.actor(config.apify.actorId).call({
-      startUrls: [{ url: 'https://www.yellowpages.com' }],
+      searchStringsArray: [niche],
+      locationQuery: zip ? `${zip}, United States` : 'United States',
+      maxCrawledPlacesPerSearch: 10,
     });
 
-    return await client.dataset(run.defaultDatasetId).listItems().then((result) => result.items || []);
+    const items = await client.dataset(run.defaultDatasetId).listItems().then((result) => result.items || []);
+    return items.map((lead) => ({
+      name: lead.name || lead.title || lead.businessName || 'Unknown Business',
+      phone: lead.phone || lead.phoneNumber || '',
+      website: normalizeUrl(lead.url || lead.website || lead.link || ''),
+      zip: lead.zip || zip || 'unknown',
+      businessType: lead.businessType || niche || 'Unknown',
+      aiReady: false,
+    })).filter((lead) => lead.website || lead.phone);
   } catch (error) {
     console.warn(`Apify fallback failed: ${error.message}`);
     return [];
   }
+}
+
+async function scrapeBusinessLeads(zip, niche = getProviderConfig().leadSearchTerm) {
+  const config = getProviderConfig();
+  if (config.apify.apiToken) {
+    const apifyLeads = await runApifyCapture(zip, niche);
+    if (apifyLeads.length > 0) return apifyLeads;
+  }
+  return scrapeBusinessLeadsForZip(zip, niche);
 }
 
 async function runPipeline() {
@@ -136,7 +155,7 @@ async function runPipeline() {
   }
 
   for (const zip of TARGET_ZIPS) {
-    const zipLeads = await scrapeBusinessLeadsForZip(zip);
+    const zipLeads = await scrapeBusinessLeads(zip);
     for (const lead of zipLeads) {
       const exists = leads.some((item) => item.website === lead.website || item.phone === lead.phone);
       if (!exists) leads.push(lead);
@@ -161,6 +180,7 @@ module.exports = {
   parseBusinessLinks,
   pageHasAIInfrastructure,
   scrapeBusinessLeadsForZip,
+  scrapeBusinessLeads,
   runApifyCapture,
   runPipeline,
 };

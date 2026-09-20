@@ -26,6 +26,18 @@ function readArray(dataDir, filename) {
   }
 }
 
+function readObject(dataDir, filename, fallback = {}) {
+  const filePath = path.join(dataDir, filename);
+  if (!fs.existsSync(filePath)) return fallback;
+  try {
+    const value = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    return value && typeof value === 'object' ? value : fallback;
+  } catch (error) {
+    console.warn(`Command center could not read ${filename}: ${error.message}`);
+    return fallback;
+  }
+}
+
 function getTelemetry() {
   const config = getProviderConfig();
   const pipelineState = (() => {
@@ -38,6 +50,9 @@ function getTelemetry() {
         status: paused ? 'paused' : 'running',
         pausedUntil: value.pausedUntil || null,
         cycleLeads: value.cycleLeads || 0,
+        total: value.total || 0,
+        completed: value.completed || 0,
+        nextIndex: value.nextIndex || 0,
       };
     } catch (error) {
       console.warn(`Command center could not read pipeline state: ${error.message}`);
@@ -47,7 +62,14 @@ function getTelemetry() {
   const leads = readArray(config.app.dataDir, trackedFiles.leads);
   const outreach = readArray(config.app.dataDir, trackedFiles.outreach);
   const installations = readArray(config.app.dataDir, trackedFiles.installations);
+  const pipelineTelemetry = readObject(config.app.dataDir, 'pipeline_telemetry.json', { items: [] });
+  const locks = readObject(config.app.dataDir, 'pipeline_locks.json', {});
   const successfulOutreach = outreach.filter((item) => !item.error).length;
+  const scanTotal = Number(pipelineState.total || 0);
+  const scanCompleted = Number(pipelineState.completed || pipelineState.nextIndex || 0);
+  const telemetryItems = Array.isArray(pipelineTelemetry.items) ? pipelineTelemetry.items : [];
+  const projectedLostRevenueCents = leads.reduce((total, lead) => total + Number(lead.projection?.annualOpportunity || 0) * 100, 0);
+  const lockEntries = Object.entries(locks);
 
   return {
     timestamp: new Date().toISOString(),
@@ -58,8 +80,18 @@ function getTelemetry() {
     }, {}) },
     outreach: { total: outreach.length, successful: successfulOutreach },
     installations: { total: installations.length, queued: installations.filter((item) => item.deploymentStatus === 'queued_for_provider_installation').length },
-    revenue: { currency: 'USD', bookedCents: installations.length * 250000 },
-    scan: pipelineState,
+    revenue: { currency: 'USD', bookedCents: installations.length * 250000, projectedLostRevenueCents },
+    scan: {
+      status: pipelineState.pausedUntil && Date.parse(pipelineState.pausedUntil) > Date.now() ? 'paused' : (pipelineState.status || 'running'),
+      total: scanTotal,
+      completed: scanCompleted,
+      percent: scanTotal ? Math.min(100, Math.round((scanCompleted / scanTotal) * 1000) / 10) : 0,
+      activeThreads: Number(config.pipelineConcurrency || process.env.PIPELINE_CONCURRENCY || 4),
+      errors: telemetryItems.filter((item) => item.status === 'error').length,
+      pausedUntil: pipelineState.pausedUntil || null,
+    },
+    locks: lockEntries.slice(-12).map(([key, value]) => ({ key, ...(value && typeof value === 'object' ? value : { status: String(value) }) })),
+    triggers: { outreach: outreach.length, installations: installations.length },
     providers: getProviderStatus(config),
   };
 }

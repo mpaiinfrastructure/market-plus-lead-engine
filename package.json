@@ -6,6 +6,7 @@
   "scripts": {
     "scrape": "node src/pipeline-cli.js",
     "pipeline": "node src/pipeline-cli.js",
+    "pipeline:watch": "node src/pipeline-watch.js",
     "outreach": "node src/outreach.js",
     "doctor": "node src/ops.js doctor",
     "self-heal": "node src/ops.js self-heal",

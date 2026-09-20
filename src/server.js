@@ -89,6 +89,20 @@ function createApp() {
   const app = express();
   app.disable('x-powered-by');
 
+  app.get('/', (_, res) => {
+    res.redirect(getProviderConfig().app.dashboardUrl);
+  });
+
+  app.use((req, res, next) => {
+    const origin = getProviderConfig().app.dashboardOrigin;
+    if (origin && origin !== '*') res.set('Access-Control-Allow-Origin', origin);
+    if (origin && origin !== '*') res.set('Access-Control-Allow-Credentials', 'true');
+    res.set('Access-Control-Allow-Headers', 'Content-Type');
+    res.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    if (req.method === 'OPTIONS') return res.sendStatus(204);
+    next();
+  });
+
   app.get('/health/live', (_, res) => {
     res.json({ status: 'ok', service: 'Market Plus Engine' });
   });
@@ -159,7 +173,8 @@ function createApp() {
         return;
       }
       const token = sessionToken(config, login);
-      res.setHeader('Set-Cookie', `${sessionCookie}=${encodeURIComponent(token)}; HttpOnly; SameSite=Lax; Path=/; Max-Age=604800${config.app.environment === 'production' ? '; Secure' : ''}`);
+      const cookiePolicy = config.app.environment === 'production' ? 'SameSite=None; Secure' : 'SameSite=Lax';
+      res.setHeader('Set-Cookie', `${sessionCookie}=${encodeURIComponent(token)}; HttpOnly; ${cookiePolicy}; Path=/; Max-Age=604800`);
       res.redirect(config.app.dashboardUrl);
     } catch (error) {
       res.status(502).send(`GitHub sign-in failed: ${error.message}`);
@@ -173,7 +188,8 @@ function createApp() {
   });
 
   app.post('/auth/logout', (_, res) => {
-    res.setHeader('Set-Cookie', `${sessionCookie}=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0`);
+    const cookiePolicy = getProviderConfig().app.environment === 'production' ? 'SameSite=None; Secure' : 'SameSite=Lax';
+    res.setHeader('Set-Cookie', `${sessionCookie}=; HttpOnly; ${cookiePolicy}; Path=/; Max-Age=0`);
     res.status(204).end();
   });
 

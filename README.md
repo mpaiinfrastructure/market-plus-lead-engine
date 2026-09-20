@@ -89,7 +89,9 @@ values in the Render dashboard. After Render assigns service URLs:
    `https://<api-service>/auth/github/callback`.
 3. Register that callback URL in a GitHub OAuth App.
 4. Set the dashboard `NEXT_PUBLIC_API_URL` to the API HTTPS URL.
-5. Keep `DRY_RUN=true` until provider delivery has been tested deliberately.
+5. Set the API service `DASHBOARD_URL` to the dashboard HTTPS URL.
+6. Set the API service `DASHBOARD_ORIGIN` to the dashboard HTTPS origin.
+7. Keep `DRY_RUN=true` until provider delivery has been tested deliberately.
 
 The API uses a persistent Render disk for resumable pipeline state. GitHub
 Actions remains responsible for scheduled scanning; Render hosts the API and
@@ -127,6 +129,8 @@ node src/outreach.js
 ```
 
 The scheduled GitHub Actions workflow refreshes lead data with `npm run scrape`; outbound outreach remains manual so provider messages are sent intentionally.
+
+Market Plus uses paid checkout for installations and does not offer extended free trials or free installations. Any demo or pilot access must be separately approved and does not continue automatically.
 
 ## Required vs optional providers
 

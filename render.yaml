@@ -15,6 +15,8 @@ services:
         value: /var/data
       - key: DASHBOARD_URL
         sync: false
+      - key: DASHBOARD_ORIGIN
+        sync: false
       - key: PUBLIC_BASE_URL
         sync: false
       - key: GITHUB_OAUTH_CLIENT_ID
@@ -30,7 +32,7 @@ services:
       - key: APIFY_API_TOKEN
         sync: false
       - key: APIFY_ACTOR_ID
-        value: apify/website-scraper
+        value: compass/crawler-google-places
       - key: STRIPE_API_KEY
         sync: false
       - key: STRIPE_PRICE_ID

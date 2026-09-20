@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { getProviderConfig } = require('./config');
-const { scrapeBusinessLeadsForZip } = require('./scraper');
+const { scrapeBusinessLeads } = require('./scraper');
 const { buildPitchPrompt } = require('./outreach');
 const { qualifyLeadLocally } = require('./ai');
 
@@ -90,7 +90,7 @@ async function runPipeline(options = {}) {
   const pauseMs = Math.max(1000, Math.floor(Number(
     options.pauseMs || process.env.PIPELINE_PAUSE_MS || 4 * 60 * 60 * 1000,
   )));
-  const scrape = options.scrape || ((zip, niche) => scrapeBusinessLeadsForZip(zip, niche));
+  const scrape = options.scrape || ((zip, niche) => scrapeBusinessLeads(zip, niche));
   const statePath = options.statePath || path.join(dataDir, 'pipeline_state.json');
   const locksPath = options.locksPath || path.join(dataDir, 'pipeline_locks.json');
   const telemetryPath = options.telemetryPath || path.join(dataDir, 'pipeline_telemetry.json');
@@ -103,6 +103,10 @@ async function runPipeline(options = {}) {
     cycleLeads: 0,
     pausedUntil: null,
   });
+  state.nextIndex = Number.isFinite(Number(state.nextIndex)) ? Number(state.nextIndex) : 0;
+  state.completed = Number.isFinite(Number(state.completed)) ? Number(state.completed) : 0;
+  state.cycleLeads = Number.isFinite(Number(state.cycleLeads)) ? Number(state.cycleLeads) : 0;
+  state.completedJobs = state.completedJobs && typeof state.completedJobs === 'object' ? state.completedJobs : {};
   const now = Date.now();
   if (state.pausedUntil && Date.parse(state.pausedUntil) > now) {
     return {

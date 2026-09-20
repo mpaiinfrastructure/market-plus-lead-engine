@@ -17,6 +17,7 @@ function getHighIncomeZips() {
 }
 
 function getProviderConfig() {
+  const configuredApifyActor = coalesce(process.env.APIFY_ACTOR_ID);
   return {
     app: {
       environment: coalesce(process.env.NODE_ENV, 'development'),
@@ -24,7 +25,7 @@ function getProviderConfig() {
       dataDir: path.resolve(__dirname, '..', process.env.DATA_DIR || 'data'),
       publicBaseUrl: coalesce(process.env.PUBLIC_BASE_URL, 'http://localhost:3000'),
       dashboardUrl: coalesce(process.env.DASHBOARD_URL, 'http://localhost:3001'),
-      dashboardOrigin: coalesce(process.env.DASHBOARD_ORIGIN, '*'),
+      dashboardOrigin: coalesce(process.env.DASHBOARD_ORIGIN, 'http://localhost:3001'),
       allowRuntimeUpgrade: coalesce(process.env.ALLOW_RUNTIME_UPGRADE, 'false') === 'true',
       dryRun: coalesce(process.env.DRY_RUN, 'true') !== 'false',
     },
@@ -86,7 +87,9 @@ function getProviderConfig() {
     },
     apify: {
       apiToken: coalesce(process.env.APIFY_API_TOKEN),
-      actorId: coalesce(process.env.APIFY_ACTOR_ID, 'apify/website-scraper'),
+      actorId: configuredApifyActor === 'apify/website-scraper'
+        ? 'compass/crawler-google-places'
+        : coalesce(configuredApifyActor, 'compass/crawler-google-places'),
     },
     github: {
       owner: coalesce(process.env.GH_OWNER),
